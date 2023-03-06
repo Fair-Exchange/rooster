@@ -1,9 +1,9 @@
 use crate::{error::Crows, instruction::RoosterCommand};
 use borsh::{BorshDeserialize, BorshSerialize};
-use mpl_token_metadata::instruction::{
+use lpl_token_metadata::instruction::{
     builders::TransferBuilder, InstructionBuilder, TransferArgs,
 };
-use solana_program::{
+use safecoin_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint::ProgramResult,
     instruction::{AccountMeta, Instruction},
@@ -22,12 +22,12 @@ pub mod pda;
 pub mod processor;
 pub mod state;
 
-pub use mpl_token_metadata::{processor::AuthorizationData, state::TokenDelegateRole};
+pub use lpl_token_metadata::{processor::AuthorizationData, state::TokenDelegateRole};
 
-solana_program::declare_id!("Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz");
+safecoin_program::declare_id!("rstP3sVCeYPT1QMqESr1xiNM2PwapJnSKBNmJdY96pX");
 
-pub const SPL_TOKEN_PROGRAM_ID: Pubkey = pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+pub const SAFE_TOKEN_PROGRAM_ID: Pubkey = pubkey!("ToKLx75MGim1d1jRusuVX8xvdvvbSDESVaNXpRA9PHN");
 pub const SPL_ATA_TOKEN_PROGRAM_ID: Pubkey =
-    pubkey!("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+    pubkey!("AToD9iqHSc2fhEP9Jp7UYA6mRjHQ4CTWyzCsw8X3tH7K");
 pub const MPL_TOKEN_AUTH_RULES_PROGRAM_ID: Pubkey =
-    pubkey!("auth9SigNpDKz4sJJ1DfCTuZrZNSAgh9sFD3rboVmgg");
+    pubkey!("autNTWWsmgHkTc9xGwaED2K7UMXB1YurFEuwiCKXpS9");

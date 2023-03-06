@@ -1,5 +1,5 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use mpl_token_metadata::{
+use lpl_token_metadata::{
     pda::{find_master_edition_account, find_metadata_account, find_token_record_account},
     processor::AuthorizationData,
 };
@@ -62,7 +62,7 @@ pub enum RoosterCommand {
     #[account(9, name="token_metadata_program", desc = "The token metadata program")]
     #[account(10, name="system_program", desc = "The system program")]
     #[account(11, name="sysvar_instructions", desc = "The sysvar instructions")]
-    #[account(12, name="spl_token_program", desc = "The token program")]
+    #[account(12, name="safe_token_program", desc = "The token program")]
     #[account(13, name="spl_ata_program", desc = "The spl ata program")]
     #[account(14, name="authorization_rules_program", desc = "The authorization rules program")]
     #[account(15, name="authorization_rules", desc = "The authorization rules PDA account")]
@@ -79,7 +79,7 @@ pub enum RoosterCommand {
     #[account(7, name="token_metadata_program", desc = "The token metadata program")]
     #[account(8, name="system_program", desc = "The system program")]
     #[account(9, name="sysvar_instructions", desc = "The sysvar instructions")]
-    #[account(10, name="spl_token_program", desc = "The token program")]
+    #[account(10, name="safe_token_program", desc = "The token program")]
     #[account(11, name="authorization_rules_program", desc="Token Authorization Rules Program")]
     #[account(12, name="authorization_rules", desc="Token Authorization Rules account")]
     Delegate(DelegateArgs),
@@ -94,7 +94,7 @@ pub enum RoosterCommand {
     #[account(6, name="token_metadata_program", desc = "The token metadata program")]
     #[account(7, name="system_program", desc="System program")]
     #[account(8, name="sysvar_instructions", desc="System program")]
-    #[account(9, name="spl_token_program", desc="SPL Token Program")]
+    #[account(9, name="safe_token_program", desc="SPL Token Program")]
     Lock(LockArgs),
 
     /// Unlocks a (non-programmable) token inplace via Token Metadata CPI
@@ -107,7 +107,7 @@ pub enum RoosterCommand {
     #[account(6, name="token_metadata_program", desc = "The token metadata program")]
     #[account(7, name="system_program", desc="System program")]
     #[account(8, name="sysvar_instructions", desc="System program")]
-    #[account(9, name="spl_token_program", desc="SPL Token Program")]
+    #[account(9, name="safe_token_program", desc="SPL Token Program")]
     Unlock(UnlockArgs),
 
     /// Locks a (non-programmable) token inplace via Token Metadata CPI
@@ -121,7 +121,7 @@ pub enum RoosterCommand {
     #[account(7, name="token_metadata_program", desc = "The token metadata program")]
     #[account(8, name="system_program", desc="System program")]
     #[account(9, name="sysvar_instructions", desc="System program")]
-    #[account(10, name="spl_token_program", desc="SPL Token Program")]
+    #[account(10, name="safe_token_program", desc="SPL Token Program")]
     #[account(11, name="authorization_rules_program", desc="Token Authorization Rules Program")]
     #[account(12, name="authorization_rules", desc="Token Authorization Rules account")]
     ProgrammableLock(LockArgs),
@@ -137,7 +137,7 @@ pub enum RoosterCommand {
     #[account(7, name="token_metadata_program", desc = "The token metadata program")]
     #[account(8, name="system_program", desc="System program")]
     #[account(9, name="sysvar_instructions", desc="System program")]
-    #[account(10, name="spl_token_program", desc="SPL Token Program")]
+    #[account(10, name="safe_token_program", desc="SPL Token Program")]
     #[account(11, name="authorization_rules_program", desc="Token Authorization Rules Program")]
     #[account(12, name="authorization_rules", desc="Token Authorization Rules account")]
     ProgrammableUnlock(UnlockArgs),
@@ -157,7 +157,7 @@ pub enum RoosterCommand {
     #[account(11, name="token_metadata_program", desc = "The token metadata program")]
     #[account(12, name="system_program", desc = "The system program")]
     #[account(13, name="sysvar_instructions", desc = "The sysvar instructions")]
-    #[account(14, name="spl_token_program", desc = "The token program")]
+    #[account(14, name="safe_token_program", desc = "The token program")]
     #[account(15, name="spl_ata_program", desc = "The spl ata program")]
     #[account(16, name="authorization_rules_program", desc = "The authorization rules program")]
     #[account(17, name="authorization_rules", desc = "The authorization rules PDA account")]
@@ -170,7 +170,7 @@ pub fn init(authority: Pubkey, rooster_pda: Pubkey) -> Instruction {
         accounts: vec![
             AccountMeta::new(authority, true),
             AccountMeta::new(rooster_pda, false),
-            AccountMeta::new_readonly(solana_program::system_program::id(), false),
+            AccountMeta::new_readonly(safecoin_program::system_program::id(), false),
         ],
         data: RoosterCommand::Init.try_to_vec().unwrap(),
     }
@@ -205,10 +205,10 @@ pub fn withdraw(
             AccountMeta::new(edition, false),
             AccountMeta::new(owner_token_record, false),
             AccountMeta::new(destination_token_record, false),
-            AccountMeta::new_readonly(mpl_token_metadata::ID, false),
-            AccountMeta::new_readonly(solana_program::system_program::id(), false),
-            AccountMeta::new_readonly(solana_program::sysvar::instructions::id(), false),
-            AccountMeta::new_readonly(SPL_TOKEN_PROGRAM_ID, false),
+            AccountMeta::new_readonly(lpl_token_metadata::ID, false),
+            AccountMeta::new_readonly(safecoin_program::system_program::id(), false),
+            AccountMeta::new_readonly(safecoin_program::sysvar::instructions::id(), false),
+            AccountMeta::new_readonly(SAFE_TOKEN_PROGRAM_ID, false),
             AccountMeta::new_readonly(SPL_ATA_TOKEN_PROGRAM_ID, false),
             AccountMeta::new_readonly(MPL_TOKEN_AUTH_RULES_PROGRAM_ID, false),
             AccountMeta::new_readonly(rule_set, false),
@@ -240,13 +240,13 @@ pub fn delegate(
             AccountMeta::new(metadata, false),
             AccountMeta::new_readonly(edition, false),
             AccountMeta::new(token_record, false),
-            AccountMeta::new_readonly(mpl_token_metadata::ID, false),
-            AccountMeta::new_readonly(solana_program::system_program::id(), false),
-            AccountMeta::new_readonly(solana_program::sysvar::instructions::id(), false),
-            AccountMeta::new_readonly(SPL_TOKEN_PROGRAM_ID, false),
+            AccountMeta::new_readonly(lpl_token_metadata::ID, false),
+            AccountMeta::new_readonly(safecoin_program::system_program::id(), false),
+            AccountMeta::new_readonly(safecoin_program::sysvar::instructions::id(), false),
+            AccountMeta::new_readonly(SAFE_TOKEN_PROGRAM_ID, false),
             AccountMeta::new_readonly(MPL_TOKEN_AUTH_RULES_PROGRAM_ID, false),
             AccountMeta::new_readonly(
-                authorization_rules.ok_or(mpl_token_metadata::ID).unwrap(),
+                authorization_rules.ok_or(lpl_token_metadata::ID).unwrap(),
                 false,
             ),
         ],
@@ -273,12 +273,12 @@ pub fn lock(
             AccountMeta::new_readonly(mint, false),
             AccountMeta::new(metadata, false),
             AccountMeta::new_readonly(edition, false),
-            AccountMeta::new_readonly(mpl_token_metadata::ID, false),
-            AccountMeta::new_readonly(solana_program::system_program::id(), false),
-            AccountMeta::new_readonly(solana_program::sysvar::instructions::id(), false),
-            AccountMeta::new_readonly(SPL_TOKEN_PROGRAM_ID, false),
+            AccountMeta::new_readonly(lpl_token_metadata::ID, false),
+            AccountMeta::new_readonly(safecoin_program::system_program::id(), false),
+            AccountMeta::new_readonly(safecoin_program::sysvar::instructions::id(), false),
+            AccountMeta::new_readonly(SAFE_TOKEN_PROGRAM_ID, false),
             AccountMeta::new_readonly(MPL_TOKEN_AUTH_RULES_PROGRAM_ID, false),
-            AccountMeta::new_readonly(mpl_token_metadata::ID, false),
+            AccountMeta::new_readonly(lpl_token_metadata::ID, false),
         ],
         data: RoosterCommand::Lock(args).try_to_vec().unwrap(),
     }
@@ -303,12 +303,12 @@ pub fn unlock(
             AccountMeta::new_readonly(mint, false),
             AccountMeta::new(metadata, false),
             AccountMeta::new_readonly(edition, false),
-            AccountMeta::new_readonly(mpl_token_metadata::ID, false),
-            AccountMeta::new_readonly(solana_program::system_program::id(), false),
-            AccountMeta::new_readonly(solana_program::sysvar::instructions::id(), false),
-            AccountMeta::new_readonly(SPL_TOKEN_PROGRAM_ID, false),
+            AccountMeta::new_readonly(lpl_token_metadata::ID, false),
+            AccountMeta::new_readonly(safecoin_program::system_program::id(), false),
+            AccountMeta::new_readonly(safecoin_program::sysvar::instructions::id(), false),
+            AccountMeta::new_readonly(SAFE_TOKEN_PROGRAM_ID, false),
             AccountMeta::new_readonly(MPL_TOKEN_AUTH_RULES_PROGRAM_ID, false),
-            AccountMeta::new_readonly(mpl_token_metadata::ID, false),
+            AccountMeta::new_readonly(lpl_token_metadata::ID, false),
         ],
         data: RoosterCommand::Unlock(args).try_to_vec().unwrap(),
     }
@@ -337,13 +337,13 @@ pub fn programmable_lock(
             AccountMeta::new(metadata, false),
             AccountMeta::new_readonly(edition, false),
             AccountMeta::new(token_record, false),
-            AccountMeta::new_readonly(mpl_token_metadata::ID, false),
-            AccountMeta::new_readonly(solana_program::system_program::id(), false),
-            AccountMeta::new_readonly(solana_program::sysvar::instructions::id(), false),
-            AccountMeta::new_readonly(SPL_TOKEN_PROGRAM_ID, false),
+            AccountMeta::new_readonly(lpl_token_metadata::ID, false),
+            AccountMeta::new_readonly(safecoin_program::system_program::id(), false),
+            AccountMeta::new_readonly(safecoin_program::sysvar::instructions::id(), false),
+            AccountMeta::new_readonly(SAFE_TOKEN_PROGRAM_ID, false),
             AccountMeta::new_readonly(MPL_TOKEN_AUTH_RULES_PROGRAM_ID, false),
             AccountMeta::new_readonly(
-                authorization_rules.ok_or(mpl_token_metadata::ID).unwrap(),
+                authorization_rules.ok_or(lpl_token_metadata::ID).unwrap(),
                 false,
             ),
         ],
@@ -374,13 +374,13 @@ pub fn programmable_unlock(
             AccountMeta::new(metadata, false),
             AccountMeta::new_readonly(edition, false),
             AccountMeta::new(token_record, false),
-            AccountMeta::new_readonly(mpl_token_metadata::ID, false),
-            AccountMeta::new_readonly(solana_program::system_program::id(), false),
-            AccountMeta::new_readonly(solana_program::sysvar::instructions::id(), false),
-            AccountMeta::new_readonly(SPL_TOKEN_PROGRAM_ID, false),
+            AccountMeta::new_readonly(lpl_token_metadata::ID, false),
+            AccountMeta::new_readonly(safecoin_program::system_program::id(), false),
+            AccountMeta::new_readonly(safecoin_program::sysvar::instructions::id(), false),
+            AccountMeta::new_readonly(SAFE_TOKEN_PROGRAM_ID, false),
             AccountMeta::new_readonly(MPL_TOKEN_AUTH_RULES_PROGRAM_ID, false),
             AccountMeta::new_readonly(
-                authorization_rules.ok_or(mpl_token_metadata::ID).unwrap(),
+                authorization_rules.ok_or(lpl_token_metadata::ID).unwrap(),
                 false,
             ),
         ],
@@ -421,10 +421,10 @@ pub fn delegate_transfer(
             AccountMeta::new(edition, false),
             AccountMeta::new(source_token_record, false),
             AccountMeta::new(destination_token_record, false),
-            AccountMeta::new_readonly(mpl_token_metadata::ID, false),
-            AccountMeta::new_readonly(solana_program::system_program::id(), false),
-            AccountMeta::new_readonly(solana_program::sysvar::instructions::id(), false),
-            AccountMeta::new_readonly(SPL_TOKEN_PROGRAM_ID, false),
+            AccountMeta::new_readonly(lpl_token_metadata::ID, false),
+            AccountMeta::new_readonly(safecoin_program::system_program::id(), false),
+            AccountMeta::new_readonly(safecoin_program::sysvar::instructions::id(), false),
+            AccountMeta::new_readonly(SAFE_TOKEN_PROGRAM_ID, false),
             AccountMeta::new_readonly(SPL_ATA_TOKEN_PROGRAM_ID, false),
             AccountMeta::new_readonly(MPL_TOKEN_AUTH_RULES_PROGRAM_ID, false),
             AccountMeta::new_readonly(rule_set, false),

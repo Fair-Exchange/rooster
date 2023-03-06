@@ -1,5 +1,5 @@
-use mpl_token_metadata::instruction::builders::{DelegateBuilder, LockBuilder, UnlockBuilder};
-use solana_program::program::{invoke, invoke_signed};
+use lpl_token_metadata::instruction::builders::{DelegateBuilder, LockBuilder, UnlockBuilder};
+use safecoin_program::program::{invoke, invoke_signed};
 
 use crate::{
     assertions::assert_rooster_pda,
@@ -51,7 +51,7 @@ fn init(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let serialized_rooster = rooster.try_to_vec()?;
     let data_len = serialized_rooster.len();
 
-    mpl_utils::create_or_allocate_account_raw(
+    lpl_utils::create_or_allocate_account_raw(
         *program_id,
         rooster_pda_info,
         system_program_info,
@@ -91,9 +91,9 @@ pub fn withdraw(
     let token_metadata_program_info = next_account_info(account_iter)?;
     let system_program_info = next_account_info(account_iter)?;
     let sysvar_instructions_info = next_account_info(account_iter)?;
-    let spl_token_program_info = next_account_info(account_iter)?;
+    let safe_token_program_info = next_account_info(account_iter)?;
     let spl_ata_program_info = next_account_info(account_iter)?;
-    let mpl_token_auth_rules_program_info = next_account_info(account_iter)?;
+    let lpl_token_auth_rules_program_info = next_account_info(account_iter)?;
     let rule_set_info = next_account_info(account_iter)?;
 
     let bump = assert_rooster_pda(rooster_pda_info, authority_info)?;
@@ -118,7 +118,7 @@ pub fn withdraw(
         .owner_token_record(*owner_token_record_info.key)
         .destination_token_record(*destination_token_record_info.key)
         .authorization_rules(*rule_set_info.key)
-        .authorization_rules_program(*mpl_token_auth_rules_program_info.key)
+        .authorization_rules_program(*lpl_token_auth_rules_program_info.key)
         .payer(*authority_info.key);
 
     msg!("building transfer instruction");
@@ -150,9 +150,9 @@ pub fn withdraw(
         token_metadata_program_info.clone(),
         system_program_info.clone(),
         sysvar_instructions_info.clone(),
-        spl_token_program_info.clone(),
+        safe_token_program_info.clone(),
         spl_ata_program_info.clone(),
-        mpl_token_auth_rules_program_info.clone(),
+        lpl_token_auth_rules_program_info.clone(),
     ];
 
     msg!("invoking transfer instruction");
@@ -184,13 +184,13 @@ pub fn delegate(
     let token_metadata_program_info = next_account_info(account_iter)?;
     let system_program_info = next_account_info(account_iter)?;
     let sysvar_instructions_info = next_account_info(account_iter)?;
-    let spl_token_program_info = next_account_info(account_iter)?;
-    let mpl_token_auth_rules_program_info = next_account_info(account_iter)?;
+    let safe_token_program_info = next_account_info(account_iter)?;
+    let lpl_token_auth_rules_program_info = next_account_info(account_iter)?;
     let rule_set_info = next_account_info(account_iter)?;
 
     let signer_seeds = &[b"rooster", authority.as_ref(), &[bump]];
 
-    let delegate_args = mpl_token_metadata::instruction::DelegateArgs::TransferV1 {
+    let delegate_args = lpl_token_metadata::instruction::DelegateArgs::TransferV1 {
         amount,
         authorization_data: None,
     };
@@ -205,8 +205,8 @@ pub fn delegate(
         .metadata(*metadata_info.key)
         .master_edition(*edition_info.key)
         .authorization_rules(*rule_set_info.key)
-        .authorization_rules_program(*mpl_token_auth_rules_program_info.key)
-        .spl_token_program(*spl_token_program_info.key)
+        .authorization_rules_program(*lpl_token_auth_rules_program_info.key)
+        .safe_token_program(*safe_token_program_info.key)
         .payer(*delegate_info.key);
 
     let build_result = builder.build(delegate_args);
@@ -230,7 +230,7 @@ pub fn delegate(
         token_metadata_program_info.clone(),
         system_program_info.clone(),
         sysvar_instructions_info.clone(),
-        spl_token_program_info.clone(),
+        safe_token_program_info.clone(),
         rule_set_info.clone(),
     ];
 
@@ -253,13 +253,13 @@ pub fn lock(_program_id: &Pubkey, accounts: &[AccountInfo], args: LockArgs) -> P
     let token_metadata_program_info = next_account_info(account_iter)?;
     let system_program_info = next_account_info(account_iter)?;
     let sysvar_instructions_info = next_account_info(account_iter)?;
-    let spl_token_program_info = next_account_info(account_iter)?;
+    let safe_token_program_info = next_account_info(account_iter)?;
 
     let signer_seeds = &[b"rooster", token_owner_info.key.as_ref(), &[bump]];
 
     // creates a delegate to lock the token
 
-    let delegate_args = mpl_token_metadata::instruction::DelegateArgs::UtilityV1 {
+    let delegate_args = lpl_token_metadata::instruction::DelegateArgs::UtilityV1 {
         amount,
         authorization_data: None,
     };
@@ -292,14 +292,14 @@ pub fn lock(_program_id: &Pubkey, accounts: &[AccountInfo], args: LockArgs) -> P
         token_metadata_program_info.clone(),
         system_program_info.clone(),
         sysvar_instructions_info.clone(),
-        spl_token_program_info.clone(),
+        safe_token_program_info.clone(),
     ];
 
     invoke(&instruction, &account_infos).unwrap();
 
     // locks the token
 
-    let lock_args = mpl_token_metadata::instruction::LockArgs::V1 {
+    let lock_args = lpl_token_metadata::instruction::LockArgs::V1 {
         authorization_data: None,
     };
 
@@ -330,7 +330,7 @@ pub fn lock(_program_id: &Pubkey, accounts: &[AccountInfo], args: LockArgs) -> P
         token_metadata_program_info.clone(),
         system_program_info.clone(),
         sysvar_instructions_info.clone(),
-        spl_token_program_info.clone(),
+        safe_token_program_info.clone(),
     ];
 
     invoke_signed(&instruction, &account_infos, &[signer_seeds])
@@ -350,13 +350,13 @@ pub fn unlock(_program_id: &Pubkey, accounts: &[AccountInfo], args: UnlockArgs) 
     let token_metadata_program_info = next_account_info(account_iter)?;
     let system_program_info = next_account_info(account_iter)?;
     let sysvar_instructions_info = next_account_info(account_iter)?;
-    let spl_token_program_info = next_account_info(account_iter)?;
+    let safe_token_program_info = next_account_info(account_iter)?;
 
     let signer_seeds = &[b"rooster", token_owner_info.key.as_ref(), &[bump]];
 
     // unlocks the token (must have been locked by rooster)
 
-    let unlock_args = mpl_token_metadata::instruction::UnlockArgs::V1 {
+    let unlock_args = lpl_token_metadata::instruction::UnlockArgs::V1 {
         authorization_data: None,
     };
 
@@ -387,7 +387,7 @@ pub fn unlock(_program_id: &Pubkey, accounts: &[AccountInfo], args: UnlockArgs) 
         token_metadata_program_info.clone(),
         system_program_info.clone(),
         sysvar_instructions_info.clone(),
-        spl_token_program_info.clone(),
+        safe_token_program_info.clone(),
     ];
 
     invoke_signed(&instruction, &account_infos, &[signer_seeds])
@@ -412,15 +412,15 @@ pub fn programmable_lock(
     let token_metadata_program_info = next_account_info(account_iter)?;
     let system_program_info = next_account_info(account_iter)?;
     let sysvar_instructions_info = next_account_info(account_iter)?;
-    let spl_token_program_info = next_account_info(account_iter)?;
-    let _mpl_token_auth_rules_program_info = next_account_info(account_iter)?;
+    let safe_token_program_info = next_account_info(account_iter)?;
+    let _lpl_token_auth_rules_program_info = next_account_info(account_iter)?;
     let rule_set_info = next_account_info(account_iter)?;
 
     let signer_seeds = &[b"rooster", token_owner_info.key.as_ref(), &[bump]];
 
     // creates a delegate to lock the token
 
-    let delegate_args = mpl_token_metadata::instruction::DelegateArgs::UtilityV1 {
+    let delegate_args = lpl_token_metadata::instruction::DelegateArgs::UtilityV1 {
         amount,
         authorization_data: None,
     };
@@ -456,7 +456,7 @@ pub fn programmable_lock(
         token_metadata_program_info.clone(),
         system_program_info.clone(),
         sysvar_instructions_info.clone(),
-        spl_token_program_info.clone(),
+        safe_token_program_info.clone(),
         rule_set_info.clone(),
     ];
 
@@ -464,7 +464,7 @@ pub fn programmable_lock(
 
     // locks the token
 
-    let lock_args = mpl_token_metadata::instruction::LockArgs::V1 {
+    let lock_args = lpl_token_metadata::instruction::LockArgs::V1 {
         authorization_data: None,
     };
 
@@ -497,7 +497,7 @@ pub fn programmable_lock(
         token_metadata_program_info.clone(),
         system_program_info.clone(),
         sysvar_instructions_info.clone(),
-        spl_token_program_info.clone(),
+        safe_token_program_info.clone(),
     ];
 
     invoke_signed(&instruction, &account_infos, &[signer_seeds])
@@ -522,15 +522,15 @@ pub fn programmable_unlock(
     let token_metadata_program_info = next_account_info(account_iter)?;
     let system_program_info = next_account_info(account_iter)?;
     let sysvar_instructions_info = next_account_info(account_iter)?;
-    let spl_token_program_info = next_account_info(account_iter)?;
-    let _mpl_token_auth_rules_program_info = next_account_info(account_iter)?;
+    let safe_token_program_info = next_account_info(account_iter)?;
+    let _lpl_token_auth_rules_program_info = next_account_info(account_iter)?;
     let rule_set_info = next_account_info(account_iter)?;
 
     let signer_seeds = &[b"rooster", token_owner_info.key.as_ref(), &[bump]];
 
     // unlocks the token (the token must the locked by rooster)
 
-    let unlock_args = mpl_token_metadata::instruction::UnlockArgs::V1 {
+    let unlock_args = lpl_token_metadata::instruction::UnlockArgs::V1 {
         authorization_data: None,
     };
 
@@ -564,7 +564,7 @@ pub fn programmable_unlock(
         token_metadata_program_info.clone(),
         system_program_info.clone(),
         sysvar_instructions_info.clone(),
-        spl_token_program_info.clone(),
+        safe_token_program_info.clone(),
     ];
 
     invoke_signed(&instruction, &account_infos, &[signer_seeds])
@@ -590,9 +590,9 @@ pub fn delegate_transfer(
     let token_metadata_program_info = next_account_info(account_iter)?;
     let system_program_info = next_account_info(account_iter)?;
     let sysvar_instructions_info = next_account_info(account_iter)?;
-    let spl_token_program_info = next_account_info(account_iter)?;
+    let safe_token_program_info = next_account_info(account_iter)?;
     let spl_ata_program_info = next_account_info(account_iter)?;
-    let mpl_token_auth_rules_program_info = next_account_info(account_iter)?;
+    let lpl_token_auth_rules_program_info = next_account_info(account_iter)?;
     let rule_set_info = next_account_info(account_iter)?;
 
     let bump = assert_rooster_pda(rooster_pda_info, authority_info)?;
@@ -617,7 +617,7 @@ pub fn delegate_transfer(
         .owner_token_record(*source_token_record_info.key)
         .destination_token_record(*destination_token_record_info.key)
         .authorization_rules(*rule_set_info.key)
-        .authorization_rules_program(*mpl_token_auth_rules_program_info.key)
+        .authorization_rules_program(*lpl_token_auth_rules_program_info.key)
         .payer(*authority_info.key);
 
     msg!("building transfer instruction");
@@ -650,9 +650,9 @@ pub fn delegate_transfer(
         token_metadata_program_info.clone(),
         system_program_info.clone(),
         sysvar_instructions_info.clone(),
-        spl_token_program_info.clone(),
+        safe_token_program_info.clone(),
         spl_ata_program_info.clone(),
-        mpl_token_auth_rules_program_info.clone(),
+        lpl_token_auth_rules_program_info.clone(),
     ];
 
     msg!("invoking transfer instruction");
