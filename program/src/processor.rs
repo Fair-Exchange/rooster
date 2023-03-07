@@ -1,5 +1,5 @@
 use lpl_token_metadata::instruction::builders::{DelegateBuilder, LockBuilder, UnlockBuilder};
-use safecoin_program::program::{invoke, invoke_signed};
+use solana_program::program::{invoke, invoke_signed};
 
 use crate::{
     assertions::assert_rooster_pda,
