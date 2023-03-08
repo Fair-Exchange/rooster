@@ -3027,7 +3027,7 @@ dependencies = [
 
 [[package]]
 name = "safe-memo"
-version = "3.0.8"
+version = "3.0.9"
 dependencies = [
  "safecoin-program 1.14.17",
 ]
